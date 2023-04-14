@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+    <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas>
+    <script src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script>
+    <script src="/js/cursor/explosion.min.js"></script>
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"drewsyshi.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="考虑一个密码体制$M &#x3D; {a,b,c},K &#x3D; {k_1,k_2,k_3}和C&#x3D;{1,2,3,4}。$假设加密矩阵为：      a b c    K1 2 3 4   K2 3 4 1   K3 1 2 3   已知密钥概率分布为：$p(k_1)&#x3D;1&#x2F;2,p(k_2)&#x3D;p(k_3)&#x3D;1&#x2F;4$，且明文概率分布为$p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="密码学1">
+<meta property="og:url" content="https://drewsyshi.github.io/2023/04/12/%E5%AF%86%E7%A0%81%E5%AD%A61/index.html">
+<meta property="og:site_name" content="Drew&#39;Blog">
+<meta property="og:description" content="考虑一个密码体制$M &#x3D; {a,b,c},K &#x3D; {k_1,k_2,k_3}和C&#x3D;{1,2,3,4}。$假设加密矩阵为：      a b c    K1 2 3 4   K2 3 4 1   K3 1 2 3   已知密钥概率分布为：$p(k_1)&#x3D;1&#x2F;2,p(k_2)&#x3D;p(k_3)&#x3D;1&#x2F;4$，且明文概率分布为$p">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-12T13:28:20.000Z">
+<meta property="article:modified_time" content="2023-04-13T04:02:01.127Z">
+<meta property="article:author" content="Drew">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://drewsyshi.github.io/2023/04/12/%E5%AF%86%E7%A0%81%E5%AD%A61/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>密码学1 | Drew'Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+ 
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Drew'Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://drewsyshi.github.io/2023/04/12/%E5%AF%86%E7%A0%81%E5%AD%A61/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/drew.jpeg">
+      <meta itemprop="name" content="Drew">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Drew'Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          密码学1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-04-12 21:28:20" itemprop="dateCreated datePublished" datetime="2023-04-12T21:28:20+08:00">2023-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-04-13 12:02:01" itemprop="dateModified" datetime="2023-04-13T12:02:01+08:00">2023-04-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Cryptography/" itemprop="url" rel="index"><span itemprop="name">Cryptography</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li><strong>考虑一个密码体制$M &#x3D; {a,b,c},K &#x3D; {k_1,k_2,k_3}和C&#x3D;{1,2,3,4}。$假设加密矩阵为：</strong></li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>K1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>3</td>
+<td>4</td>
+<td>1</td>
+</tr>
+<tr>
+<td>K3</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+</tbody></table>
+<p><strong>已知密钥概率分布为：$p(k_1)&#x3D;1&#x2F;2,p(k_2)&#x3D;p(k_3)&#x3D;1&#x2F;4$，且明文概率分布为$p(a)&#x3D;1&#x2F;3,p(b)&#x3D;8&#x2F;15,p(c)&#x3D;2&#x2F;15$，计算H(M)，H(K)，H(C)，H(M|C)，H(K|C).</strong></p>
+<span id="more"></span>      
+<p>$$<br>H(M)&#x3D;E(I(M))&#x3D;-(p(M&#x3D;a)logp(M&#x3D;a)+p(M&#x3D;b)logp(M&#x3D;b)+p(M&#x3D;c)logp(M&#x3D;c))<br>\&#x3D;-(\frac13log\frac13+\frac8{15}log\frac8{15}+\frac2{15}log\frac2{15})<br>\&#x3D;1.40(bit)<br>$$</p>
+<p>$$<br>H(K)&#x3D;E(I(K))&#x3D;-\sum_{i&#x3D;1}^3{p(K&#x3D;k_i)logp(K&#x3D;k_i)}<br>\&#x3D;-(\frac12log\frac12+\frac14log\frac14+\frac14log\frac14)<br>\&#x3D;1.5(bit)<br>$$</p>
+<p>$$<br>p_c(1)&#x3D;\frac13\times\frac14+\frac2{15}\times\frac14&#x3D;\frac7{60},p_c(2)&#x3D;\frac13\times\frac12+\frac8{15}\times\frac14&#x3D;\frac3{10}\<br>p_c(3)&#x3D;\frac13\times\frac14+\frac8{15}\times\frac12+\frac2{15}\times\frac14&#x3D;\frac{23}{60},p_c(4)&#x3D;\frac8{15}\times\frac14+\frac2{15}\times\frac12&#x3D;\frac15\<br>p(a|1)&#x3D;\frac57,p(a|2)&#x3D;\frac59,p(a|3)&#x3D;\frac5{23},p(a|4)&#x3D;0\<br>p(b|1)&#x3D;0,p(b|2)&#x3D;\frac49,p(b|3)&#x3D;\frac{16}{23},p(b|4)&#x3D;\frac23\<br>p(c|1)&#x3D;\frac27,p(c|2)&#x3D;0,p(c|3)&#x3D;\frac2{23},p(c|4)&#x3D;\frac13<br>$$</p>
+<p>$$<br>H(M|C)&#x3D;\sum_{i,j}{p(m_i,c_i)I(m_i|c_i)}&#x3D;<br>\&#x3D;p(a,1)I(a|1)+p(a,2)I(a|2)+p(a,3)I(a|3)+p(a,4)I(a|4)\+p(b,1)I(b|1)+p(b,2)I(b|2)+p(b,3)I(b|3)+p(b,4)I(b|4)\+p(c,1)I(c|1)+p(c,2)I(c|2)+p(c,3)I(c|3)+p(c,4)I(c|4)<br>\&#x3D;-(\frac1{12}log\frac57+\frac16log\frac59+\frac1{12}log\frac5{23}+0<br>\+0+\frac2{15}log\frac49+\frac4{15}log\frac{16}{23}+\frac2{15}log\frac23<br>\+\frac1{30}log\frac27+0+\frac1{30}log\frac2{23}+\frac1{15}log\frac13)<br>\&#x3D;1.02(bit)<br>$$</p>
+<p>$$<br>H(K|C)&#x3D;\sum_{i,j}{p(k_i,c_i)I(k_i|c_i)}&#x3D;<br>\&#x3D;p(k_1,1)I(k_1|1)+p(k_1,2)I(k_1|2)+p(k_1,3)I(k_1|3)+p(k_1,4)I(k_1|4)\+p(k_2,1)I(k_2|1)+p(k_2,2)I(k_2|2)+p(k_2,3)I(k_2|3)+p(k_2,4)I(k_2|4)\+p(k_3,1)I(k_3|1)+p(k_3,2)I(k_3|2)+p(k_3,3)I(k_3|3)+p(k_3,4)I(k_3|4)<br>\&#x3D;-(0+\frac16log\frac59+\frac4{15}log\frac{16}{23}+\frac1{15}log\frac13<br>\+\frac1{30}log\frac27+0+\frac1{12}log\frac5{23}+\frac2{15}log\frac23<br>\+\frac1{12}log\frac57+\frac2{15}log\frac49+\frac1{30}log\frac2{23}+0)<br>\&#x3D;1.02(bit)<br>$$</p>
+<ol start="2">
+<li><p><strong>考虑一个密码系统（P,C,K,E,D）。</strong></p>
+<p> <strong>a）说明为什么$H(P,K) &#x3D; H(C,P,K) &#x3D; H(P) + H(K).$</strong></p>
+<p> 由定理可知,$H(C,P,K)&#x3D;H(P,K)+H(C|P,K)$.</p>
+<p> 由于密钥和明文唯一确定密文，所以$H(C|P,K)&#x3D;0$，故$H(P,K)&#x3D;H(C,P,K)$.</p>
+<p> 又因为P,K是相互独立的，故$H(P,K)&#x3D;H(P)+H(K)$.</p>
+<p> 即证毕$H(P,K)&#x3D;H(C,P,K)&#x3D;H(P)+H(K)$.</p>
+<p> <strong>b）假设这个系统具有完善保密性。证明$H(C,P)&#x3D;H(C)+H(P)和H(C)&#x3D;H(K)-H(K|C,P).$</strong></p>
+<p> 首先有$H(C,P)&#x3D;H(P|C)+H(C)$</p>
+<p> 由于系统具有完善保密性，故在接收到密文C的情况下，明文P的后验概率和其先验概率是相同的，因此也有$H(P|C)&#x3D;H(P)$.</p>
+<p> 即证毕$H(C,P)&#x3D;H(C)+H(P)$.</p>
+<p> 然后$H(K)-H(K|C,P)&#x3D;H(K)-(H(K,C,P)-H(C,P))$</p>
+<p> 由a）和b）可知，$H(K,C,P)&#x3D;K(P,K)&#x3D;H(P)+H(K);H(C,P)&#x3D;H(C)+H(P)$.</p>
+<p> 故$H(K)-H(K|C,P)&#x3D;H(K)-(H(P)+H(K)-H(C)-H(P))&#x3D;H(C)$</p>
+<p> 即证毕$H(C)&#x3D;H(K)-H(K|C,P)$.</p>
+<p> <strong>c）假设这个系统具有完善保密性，并且对每一个明文密文对，最多只有一个相应的密钥能够加密。证明$H(C)&#x3D;H(K).$</strong></p>
+<p> 由a）可知，$H(C)&#x3D;H(K)-H(K|C,P)$.</p>
+<p> 由题设知对每一个明文密文对，最多只有一个相应的密钥能加密。即由密文和明文可以唯一确定密钥，即$H(K|C,P)&#x3D;0$.</p>
+<p> 即证毕$H(C)&#x3D;H(K)$.</p>
+</li>
+<li><p><strong>假设$S_1$是移位密码（密钥等概率），$S_2$是密钥满足概率分布$p_k$（不必是等概率的）的移位密码。证明$S_1*S_2&#x3D;S_1$（这里用等号不一定准确，请思考什么叫相等或等价，给出你的定义并证明）。</strong></p>
+</li>
+</ol>
+<p>​       <strong>定义：</strong>对于两个加解密方式相同的密码系统，并且其P,C都为相同的集合。若其密钥K的概率分布也相同，则认为这两个密码系统是等价的。</p>
+<p>由于$$S_1$$是移位密码（密钥等概率），依据定理可知，$$S_1$$是 完全保密的。<br>$$<br>P_p(y)&#x3D;\frac1{26}<br>$$<br>对于一个复合密码系统$S_1\times S_2$，若证明其$P_p(y)&#x3D;\frac1{26}$，则可证明$S_1\times  S_2$同样是密钥等概率的，即$S_1 \times S_2 &#x3D; S_1$.<br>$$<br>P_p(y)&#x3D;\sum_{K_1\in Z_{26}}\sum_{K_2\in Z_{26}}P_{k_1}(K)P_{k_2}(K)P_p(d_{k_1}(d_{k_2}(y)))<br>\&#x3D;\sum_{K_1\in Z_{26}}\sum_{K_2\in Z_{26}}\frac1{26}P_{k_2}(K)P_p(y-k_2-k_1)<br>\&#x3D;\frac1{26}\sum_{K_2\in Z_{26}}P_{k_2}(K)\sum_{y\in Z_{26}}P_p(y-k_2)<br>\&#x3D;\frac1{26}.<br>$$<br>故$S_1 \times S_2$与$S_1$是等价的，即$S_1 \times S_2 &#x3D; S_1$.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2023/04/12/%E5%AF%86%E7%A0%81%E5%AD%A62/" rel="next" title="密码学2">
+      密码学2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Drew"
+      src="/images/drew.jpeg">
+  <p class="site-author-name" itemprop="name">Drew</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/drewsyshi" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;drewsyshi" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; Wed Apr 12 2023 08:00:00 GMT+0800 (中国标准时间) – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Drew</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
